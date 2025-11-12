@@ -29,6 +29,12 @@ async function run() {
         const bookingCollection = homeDB.collection("booking");
 
         // *****
+        app.post('/services', async (req, res) => {
+            const newService = req.body;
+            const result = await serviceCollection.insertOne(newService);
+            res.send(result)
+        })
+        // ****
 
         //  app.patch('/services/:id', async (req, res) => {
         //     const id = req.params.id;
