@@ -94,6 +94,51 @@ async function run() {
             res.send(result);
         });
         // ****
+         // Express Server (index.js বা servicesRoutes.js)
+
+app.get('/services', async (req, res) => {
+    try {
+        // 1. ✅ Query Parameters গ্রহণ
+        const minPrice = req.query.minPrice; 
+        const maxPrice = req.query.maxPrice;
+        
+        // 2. ✅ MongoDB কোয়েরি অবজেক্ট তৈরি
+        let query = {}; 
+
+        // 3. ডায়নামিক ফিল্টারিং লজিক (Price)
+        if (minPrice || maxPrice) {
+            query.Price = {}; // Price ফিল্ডের জন্য অবজেক্ট তৈরি
+            
+            // যদি minPrice থাকে: Price >= minPrice
+            if (minPrice) {
+                query.Price.$gte = Number(minPrice); 
+            }
+            
+            // যদি maxPrice থাকে: Price <= maxPrice
+            if (maxPrice) {
+                query.Price.$lte = Number(maxPrice); 
+            }
+        }
+        
+        // ⚠️ যদি আপনি ইউজার ইমেইল দিয়েও ফিল্টার করতে চান (যেমন: Provider এর সার্ভিস)
+        // const email = req.query.email;
+        // if (email) {
+        //     query.ProviderEmail = email;
+        // }
+
+
+        // 4. MongoDB তে কোয়েরি চালানো
+        // ⚠️ নিশ্চিত করুন Price ডেটাবেসে Number টাইপ হিসেবে সেভ করা আছে
+        const services = await serviceCollection.find(query).toArray();
+        
+        res.send(services);
+        
+    } catch (error) {
+        console.error('Filtering Error:', error);
+        res.status(500).send({ message: 'Internal Server Error' });
+    }
+});
+// *****
 
 
         //  app.patch('/services/:id', async (req, res) => {
