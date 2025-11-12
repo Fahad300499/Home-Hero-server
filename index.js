@@ -42,6 +42,18 @@ async function run() {
             res.send(result)
         })
         // ***
+         // booking service
+        app.get('/bookings', async (req, res) => {
+            const email = req.query.email;
+            const query = {};
+            if (email) {
+                query.email = email;
+            }
+            const cursor = bookingCollection.find(query);
+            const result = await cursor.toArray();
+            res.send(result);
+        })
+        // *****
 
 
         //  app.patch('/services/:id', async (req, res) => {
