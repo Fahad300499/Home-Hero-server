@@ -140,6 +140,72 @@ app.get('/services', async (req, res) => {
 });
 // *****
 
+        app.delete('/services/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await serviceCollection.deleteOne(query);
+            res.send(result);
+        });
+
+        const { ObjectId } = require('mongodb'); 
+// ⚠️ ধরে নিলাম 'serviceCollection' আপনার MongoDB সার্ভিস কালেকশনের রেফারেন্স
+
+app.patch('/services/:id', async (req, res) => {
+    try {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
+        
+        // ❌ সমস্যা ১ সমাধান: রিকোয়েস্ট বডি থেকে নতুন ডেটা এবং AUTH ইমেইল গ্রহণ
+        const { 
+            ServiceName, 
+            Price, 
+            ProviderEmailForAuth, // ক্লায়েন্ট থেকে আসা প্রোভাইডার ইমেইল
+            ...updatedFields 
+        } = req.body;
+        
+        // --- 🔒 অথরাইজেশন চেক শুরু ---
+        
+        // 1. সার্ভিসের বর্তমান ডেটা খুঁজে বের করা
+        const service = await serviceCollection.findOne(query);
+
+        if (!service) {
+            return res.status(404).send({ message: 'Error: Service not found.' });
+        }
+        
+        // 2. 🛑 অথরাইজেশন চেক (Provider Email মিলানো)
+        if (service.ProviderEmail !== ProviderEmailForAuth) { 
+            return res.status(403).send({ message: 'Forbidden: You can only update your own service.' });
+        }
+        
+        // --- 🔒 অথরাইজেশন চেক শেষ ---
+
+        // ❌ সমস্যা ২ সমাধান: MongoDB এর $set অপারেটরের জন্য ডেটা তৈরি করা
+        const updateDoc = {
+            $set: {
+                // ক্লায়েন্ট থেকে আসা আপডেট ফিল্ডগুলো এখানে যোগ হবে
+                ServiceName:ServiceName,
+                Price: Price, // যদি Price সংখ্যা হিসেবে সেভ করতে চান, তবে Number(Price) করুন
+                // অন্যান্য ফিল্ড, যেমন: updatedFields
+                
+            },
+        };
+
+        // ❌ সমস্যা ৩ সমাধান: updateOne() এর দ্বিতীয় প্যারামিটার যোগ করা
+        const result = await serviceCollection.updateOne(query, updateDoc);
+
+        if (result.modifiedCount > 0) {
+            res.send({ success: true, message: 'Service updated successfully.', modifiedCount: result.modifiedCount });
+        } else {
+            // যদি modifiedCount = 0 হয়, তার মানে ডেটাবেসে কোনো পরিবর্তন হয়নি (হয়তো ইউজার একই ডেটা দিয়েছেন)
+            res.send({ success: true, message: 'Update request successful, but no changes were made.' });
+        }
+        
+    } catch (error) {
+        console.error('Service Update Error:', error);
+        res.status(500).send({ message: 'Internal Server Error during update.' });
+    }
+});
+
 
         //  app.patch('/services/:id', async (req, res) => {
         //     const id = req.params.id;
