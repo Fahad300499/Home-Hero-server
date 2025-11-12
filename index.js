@@ -35,6 +35,14 @@ async function run() {
             res.send(result)
         })
         // ****
+        // booking service
+        app.post('/bookings', async (req, res) => {
+            const newbooking = req.body;
+            const result = await bookingCollection.insertOne(newbooking);
+            res.send(result)
+        })
+        // ***
+
 
         //  app.patch('/services/:id', async (req, res) => {
         //     const id = req.params.id;
