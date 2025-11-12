@@ -62,6 +62,25 @@ async function run() {
             res.send(result);
         });
         // ****
+        // my service
+        app.get('/all-services', async (req, res) => {
+            const email = req.query.email;
+            const query = {};
+            if (email) {
+                query.Email = email;
+            }
+            const cursor = serviceCollection.find(query);
+            const result = await cursor.toArray();
+            res.send(result);
+
+        });
+
+        app.get('/services', async (req, res) => {
+            const cursor = serviceCollection.find().limit(6);
+            const services = await cursor.toArray();
+            res.send(services);
+        });
+        // ****
 
 
         //  app.patch('/services/:id', async (req, res) => {
